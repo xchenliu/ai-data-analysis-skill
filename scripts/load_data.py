@@ -20,7 +20,7 @@ def load_data(filepath):
     ext = filepath.rsplit('.', 1)[-1].lower()
 
     if ext == 'csv':
-        encodings = ['utf-8', 'gbk', 'gb2312', 'gb18030', 'latin-1']
+        encodings = ['utf-8-sig', 'utf-8', 'gbk', 'gb2312', 'gb18030', 'latin-1']
         for enc in encodings:
             try:
                 return pd.read_csv(filepath, encoding=enc)

@@ -32,36 +32,39 @@ A reusable **Claude Code Skill** for automated data analysis, EDA (Exploratory D
 │   ├── chart_template.py             # Copy-and-modify chart template with full styling
 │   └── color_palettes.json           # Pre-defined professional color palettes
 ├── examples/
-│   ├── generate_sample.py            # Script to generate sample data
-│   ├── sample_sales.csv              # Sample Chinese sales dataset (200 rows)
+│   ├── sample_jobinfo_1000.csv       # Real-world job listing dataset (1000 rows, 25 columns)
 │   └── sample_output/                # Auto-generated EDA report + charts
 └── LICENSE
 ```
 
 ## Example Output
 
-Run `auto_eda.py` on a sample Chinese sales dataset (200 rows) to see what you get:
+Run `auto_eda.py` on a real-world Chinese job listing dataset (1000 rows, 25 columns) to see what you get:
 
-### Distribution Histogram
-![Histogram](examples/sample_output/images/hist_销售额.png)
+### Top Job Titles
+![Job Titles](examples/sample_output/images/bar_岗位名称.png)
 
-### Category Frequency
-![Bar Chart](examples/sample_output/images/bar_品类.png)
+### Salary Distribution
+![Salary](examples/sample_output/images/bar_最高薪资.png)
+
+### Geo Coordinate Distribution
+![Longitude](examples/sample_output/images/hist_经度.png)
 
 ### Correlation Heatmap
 ![Heatmap](examples/sample_output/images/corr_heatmap.png)
 
 ### Auto-generated Report (excerpt)
 
-> **Dataset**: 200 rows x 6 columns
+> **Dataset**: 1000 rows x 25 columns (job listings with salary, location, requirements, etc.)
 >
-> | Field | Outliers | Ratio | Lower | Upper |
-> |-------|----------|-------|-------|-------|
-> | 销售额 | 15 | 7.69% | -4,630 | 11,700 |
-> | 成本 | 15 | 7.81% | -2,870 | 7,360 |
-> | 数量 | 0 | 0.00% | -48.5 | 150 |
+> | Insight | Detail |
+> |---------|--------|
+> | Missing 96% | 专业要求 (major requirement) mostly unfilled |
+> | Missing 84.8% | 特殊要求 (special requirements) mostly unfilled |
+> | 26.6% outliers | 经度 (longitude) - jobs spread across many cities |
+> | Strong correlation | 经度 & 维度 = **0.848** (geographic clustering) |
 >
-> **Key Insight**: 销售额 and 成本 correlation = **0.984**
+> Top job title: **数据分析师** (Data Analyst) with 191 listings
 
 Full example data and output are in the [`examples/`](examples/) directory.
 
