@@ -66,7 +66,7 @@ Run `auto_eda.py` on a real-world Chinese job listing dataset (1000 rows, 25 col
 >
 > Top job title: **数据分析师** (Data Analyst) with 191 listings
 
-Full example data and output are in the [`examples/`](examples/) directory.
+Full example data and output are in the [`examples/`](examples/) directory. The complete dataset (5660 rows, 19MB) is available as a [Release download](https://github.com/xchenliu/ai-data-analysis-skill/releases/tag/v1.0.0).
 
 ## Quick Start
 
