@@ -84,17 +84,31 @@ def save_hist(df, col, outpath, font=None):
 
 def save_bar_topk(df, col, outpath, k=20, font=None):
     plt.close("all")
-    fig, ax = plt.subplots(figsize=(12, 6))
     vc = df[col].astype(str).value_counts(dropna=True).head(k)
-    ax.bar(vc.index, vc.values)
+    # Truncate long labels to 15 chars
+    labels = [s if len(s) <= 15 else s[:14] + "…" for s in vc.index]
+    # Use horizontal bar chart for readability
+    height = max(6, len(vc) * 0.4)
+    fig, ax = plt.subplots(figsize=(10, height))
+    y_pos = range(len(vc))
+    ax.barh(y_pos, vc.values, color="#4C72B0", edgecolor="white", linewidth=0.8)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels)
+    ax.invert_yaxis()  # highest count on top
     ax.set_title(f"Top {k} 类别频数: {col}" if font else f"Top {k} categories: {col}",
                  fontproperties=font)
-    ax.set_xlabel(col, fontproperties=font)
-    ax.set_ylabel("Count", fontproperties=font)
-    ax.tick_params(axis="x", rotation=45)
+    ax.set_xlabel("Count", fontproperties=font)
+    ax.set_ylabel(col, fontproperties=font)
+    # Add count labels on bars
+    for i, v in enumerate(vc.values):
+        ax.text(v + max(vc.values) * 0.01, i, str(v), va="center",
+                fontsize=9, fontproperties=font)
     if font:
         for label in ax.get_xticklabels() + ax.get_yticklabels():
             label.set_fontproperties(font)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xlim(0, max(vc.values) * 1.12)
     fig.tight_layout()
     fig.savefig(outpath, dpi=300, bbox_inches="tight")
 
