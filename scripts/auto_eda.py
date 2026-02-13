@@ -75,6 +75,9 @@ def save_hist(df, col, outpath, font=None):
                  fontproperties=font)
     ax.set_xlabel(col, fontproperties=font)
     ax.set_ylabel("Count", fontproperties=font)
+    if font:
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(font)
     fig.tight_layout()
     fig.savefig(outpath, dpi=300, bbox_inches="tight")
 
@@ -89,6 +92,9 @@ def save_bar_topk(df, col, outpath, k=20, font=None):
     ax.set_xlabel(col, fontproperties=font)
     ax.set_ylabel("Count", fontproperties=font)
     ax.tick_params(axis="x", rotation=45)
+    if font:
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(font)
     fig.tight_layout()
     fig.savefig(outpath, dpi=300, bbox_inches="tight")
 
@@ -105,6 +111,9 @@ def save_line(df, time_col, y_col, outpath, font=None):
     ax.set_xlabel(time_col, fontproperties=font)
     ax.set_ylabel(y_col, fontproperties=font)
     ax.tick_params(axis="x", rotation=45)
+    if font:
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontproperties(font)
     fig.tight_layout()
     fig.savefig(outpath, dpi=300, bbox_inches="tight")
 
