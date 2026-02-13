@@ -6,6 +6,7 @@ Auto EDA v2:
 - correlations
 - groupby summaries for categorical columns
 - write a markdown report + save charts
+- export to Word (.docx) or PDF
 """
 
 from __future__ import annotations
@@ -260,6 +261,148 @@ def run(filepath: str, outdir: str = "eda_output", max_numeric_hists=6, max_cat_
 
     return report_path
 
+
+def export_to_word(report_md: str, outdir: str = "eda_output"):
+    """Export the markdown EDA report to a Word (.docx) file.
+
+    Args:
+        report_md: Path to the markdown report file.
+        outdir: Directory where the .docx will be saved.
+
+    Returns:
+        Path to the generated .docx file.
+    """
+    try:
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+    except ImportError:
+        print("[ERROR] python-docx is required: pip install python-docx")
+        return None
+
+    doc = Document()
+
+    with open(report_md, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip("\n")
+
+        # Headings
+        if line.startswith("### "):
+            doc.add_heading(line[4:], level=3)
+        elif line.startswith("## "):
+            doc.add_heading(line[3:], level=2)
+        elif line.startswith("# "):
+            doc.add_heading(line[2:], level=1)
+
+        # Images: ![alt](path)
+        elif line.strip().startswith("!["):
+            import re
+            m = re.search(r"!\[.*?\]\((.+?)\)", line)
+            if m:
+                img_rel = m.group(1)
+                img_path = os.path.join(outdir, img_rel)
+                if os.path.exists(img_path):
+                    doc.add_picture(img_path, width=Inches(5.5))
+                    last_paragraph = doc.paragraphs[-1]
+                    last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Table rows
+        elif line.startswith("|"):
+            # Collect all consecutive table lines
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                table_lines.append(lines[i].strip())
+                i += 1
+            i -= 1  # back one since the outer loop will increment
+
+            # Parse table: skip separator row (contains ---)
+            data_rows = []
+            header = None
+            for tl in table_lines:
+                cells = [c.strip() for c in tl.strip("|").split("|")]
+                if all(set(c.strip()) <= set("-: ") for c in cells):
+                    continue  # separator
+                if header is None:
+                    header = cells
+                else:
+                    data_rows.append(cells)
+
+            if header:
+                ncols = len(header)
+                table = doc.add_table(rows=1 + len(data_rows), cols=ncols, style="Light Grid Accent 1")
+                for j, h in enumerate(header):
+                    table.rows[0].cells[j].text = h
+                for ri, row in enumerate(data_rows):
+                    for j in range(min(len(row), ncols)):
+                        table.rows[ri + 1].cells[j].text = row[j]
+
+        # Bullet points
+        elif line.startswith("- "):
+            doc.add_paragraph(line[2:], style="List Bullet")
+
+        # Regular text
+        elif line.strip():
+            doc.add_paragraph(line)
+
+        i += 1
+
+    docx_path = os.path.join(outdir, "report.docx")
+    doc.save(docx_path)
+    print(f"[OK] Word report saved: {docx_path}")
+    return docx_path
+
+
+def export_to_pdf(report_md: str, outdir: str = "eda_output"):
+    """Export the markdown EDA report to PDF via the Word export.
+
+    Generates a Word file first, then attempts conversion.
+    Requires python-docx. PDF conversion is best-effort.
+
+    Args:
+        report_md: Path to the markdown report file.
+        outdir: Directory where the PDF will be saved.
+
+    Returns:
+        Path to the generated PDF file, or the .docx path if PDF conversion unavailable.
+    """
+    docx_path = export_to_word(report_md, outdir)
+    if not docx_path:
+        return None
+
+    pdf_path = os.path.join(outdir, "report.pdf")
+
+    # Try docx2pdf (Windows/macOS with MS Word installed)
+    try:
+        from docx2pdf import convert
+        convert(docx_path, pdf_path)
+        print(f"[OK] PDF report saved: {pdf_path}")
+        return pdf_path
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # Try LibreOffice as fallback
+    import subprocess
+    for cmd in ["libreoffice", "soffice"]:
+        try:
+            subprocess.run(
+                [cmd, "--headless", "--convert-to", "pdf", "--outdir", outdir, docx_path],
+                check=True, capture_output=True, timeout=60
+            )
+            if os.path.exists(pdf_path):
+                print(f"[OK] PDF report saved: {pdf_path}")
+                return pdf_path
+        except (FileNotFoundError, subprocess.SubprocessError):
+            continue
+
+    print(f"[WARN] PDF conversion unavailable. Word report at: {docx_path}")
+    print("       Install docx2pdf (pip install docx2pdf) or LibreOffice for PDF export.")
+    return docx_path
+
 def generate_bilingual_insights(df, roles, outliers):
     lines = []
     lines.append("\n## 核心洞察 | Key Insights\n")
@@ -317,9 +460,15 @@ def generate_bilingual_insights(df, roles, outliers):
 
 if __name__ == "__main__":
     import argparse
-    p = argparse.ArgumentParser()
+    p = argparse.ArgumentParser(description="Auto EDA: one-command exploratory data analysis")
     p.add_argument("filepath", help="Path to CSV/Excel/JSON/Parquet")
     p.add_argument("--outdir", default="eda_output")
+    p.add_argument("--word", action="store_true", help="Also export report to Word (.docx)")
+    p.add_argument("--pdf", action="store_true", help="Also export report to PDF")
     args = p.parse_args()
     rp = run(args.filepath, args.outdir)
     print(f"[OK] Report saved: {rp}")
+    if args.pdf:
+        export_to_pdf(rp, args.outdir)
+    elif args.word:
+        export_to_word(rp, args.outdir)

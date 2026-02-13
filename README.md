@@ -18,8 +18,9 @@ A reusable **Claude Code Skill** for automated data analysis, EDA (Exploratory D
 ```
 .
 ├── SKILL.md                          # Claude Code skill definition (core prompt)
+├── requirements.txt                  # Python dependencies
 ├── scripts/
-│   ├── auto_eda.py                   # One-command full EDA pipeline
+│   ├── auto_eda.py                   # One-command full EDA pipeline (+ Word/PDF export)
 │   ├── load_data.py                  # Multi-format data loader with encoding fallback
 │   ├── quick_chart.py                # Quick bar/line/pie chart generation
 │   └── find_chinese_font.py          # Cross-platform Chinese font detector
@@ -30,8 +31,39 @@ A reusable **Claude Code Skill** for automated data analysis, EDA (Exploratory D
 ├── assets/
 │   ├── chart_template.py             # Copy-and-modify chart template with full styling
 │   └── color_palettes.json           # Pre-defined professional color palettes
+├── examples/
+│   ├── generate_sample.py            # Script to generate sample data
+│   ├── sample_sales.csv              # Sample Chinese sales dataset (200 rows)
+│   └── sample_output/                # Auto-generated EDA report + charts
 └── LICENSE
 ```
+
+## Example Output
+
+Run `auto_eda.py` on a sample Chinese sales dataset (200 rows) to see what you get:
+
+### Distribution Histogram
+![Histogram](examples/sample_output/images/hist_销售额.png)
+
+### Category Frequency
+![Bar Chart](examples/sample_output/images/bar_品类.png)
+
+### Correlation Heatmap
+![Heatmap](examples/sample_output/images/corr_heatmap.png)
+
+### Auto-generated Report (excerpt)
+
+> **Dataset**: 200 rows x 6 columns
+>
+> | Field | Outliers | Ratio | Lower | Upper |
+> |-------|----------|-------|-------|-------|
+> | 销售额 | 15 | 7.69% | -4,630 | 11,700 |
+> | 成本 | 15 | 7.81% | -2,870 | 7,360 |
+> | 数量 | 0 | 0.00% | -48.5 | 150 |
+>
+> **Key Insight**: 销售额 and 成本 correlation = **0.984**
+
+Full example data and output are in the [`examples/`](examples/) directory.
 
 ## Quick Start
 
@@ -57,6 +89,12 @@ The scripts can also be used independently without Claude Code:
 # Auto EDA - generates report + charts
 python scripts/auto_eda.py your_data.csv --outdir eda_output
 
+# Auto EDA + export to Word
+python scripts/auto_eda.py your_data.csv --word
+
+# Auto EDA + export to PDF
+python scripts/auto_eda.py your_data.csv --pdf
+
 # Load and inspect data
 python scripts/load_data.py your_data.csv
 
@@ -76,10 +114,19 @@ Runs a complete exploratory analysis on any dataset:
 - Builds correlation heatmap
 - Detects outliers via IQR method
 - Produces a bilingual markdown report with embedded charts
+- Exports to Word (.docx) or PDF
 
 ```python
-from scripts.auto_eda import run
+from scripts.auto_eda import run, export_to_word, export_to_pdf
+
+# Generate markdown report + charts
 report_path = run("sales.csv", outdir="eda_output")
+
+# Export to Word
+export_to_word(report_path, outdir="eda_output")
+
+# Export to PDF (requires docx2pdf or LibreOffice)
+export_to_pdf(report_path, outdir="eda_output")
 ```
 
 ### `load_data.py` - Smart Data Loader
@@ -130,8 +177,12 @@ Pre-defined palettes available in `assets/color_palettes.json`:
 ## Dependencies
 
 ```bash
-pip install pandas matplotlib openpyxl pyarrow seaborn
+pip install -r requirements.txt
 ```
+
+Core: `pandas`, `matplotlib`, `seaborn`, `openpyxl`, `pyarrow`, `tabulate`
+
+Optional for Word/PDF export: `python-docx`, `docx2pdf` (or LibreOffice)
 
 ## License
 
