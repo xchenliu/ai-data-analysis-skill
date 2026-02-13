@@ -1,0 +1,10 @@
+{
+  "vibrant": ["#E74C3C", "#3498DB", "#2ECC71", "#F39C12", "#9B59B6"],
+  "warm": ["#E74C3C", "#E67E22", "#F39C12", "#F1C40F"],
+  "cool": ["#3498DB", "#2ECC71", "#1ABC9C", "#16A085"],
+  "corporate": ["#2C3E50", "#34495E", "#7F8C8D", "#95A5A6"],
+  "netflix": ["#E50914", "#221F1F"],
+  "pastel": ["#FFB3BA", "#BAFFC9", "#BAE1FF", "#FFFFBA", "#E8BAFF"],
+  "earth": ["#8B4513", "#CD853F", "#DEB887", "#D2B48C", "#F5DEB3"],
+  "ocean": ["#006994", "#40E0D0", "#0077BE", "#00CED1", "#48D1CC"]
+}
